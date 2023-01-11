@@ -8,9 +8,23 @@ import sys
 top = tk.Tk()
 top.geometry('1280x720')
 top.title("Fill in the Blank Cards")
-frame = Frame(top)
-frame.pack(side="top", expand=True, fill="both")
-
+canvas=Canvas(top, highlightthickness=0)
+canvas.grid_columnconfigure(0, weight=1)
+myscrollbar=Scrollbar(top,orient="vertical")
+myscrollbar.pack(side="right",fill="y")
+myscrollbar.config(command=canvas.yview)
+canvas.config(yscrollcommand=myscrollbar.set)
+canvas.pack(side=TOP,expand=True,fill=BOTH)
+canvas.grid_columnconfigure(0, weight=1)
+frame = Frame(canvas)
+frame.grid_columnconfigure(0, weight=1)
+frame.bind(
+    "<Configure>",
+    lambda e: canvas.configure(
+        scrollregion=canvas.bbox("all")
+    )
+)
+canvas.create_window((0, 0), window=frame, anchor="nw")
 players = []
 num_players = 0
 scores = []
@@ -69,6 +83,7 @@ while True:
     enter_num_players.grid()
     enter_num_players.focus_set()
     var = tk.IntVar()
+    selecting_card = tk.IntVar()
     submit_btn1 = Button (frame, text="Submit", command=lambda: var.set(1))
     submit_btn1.grid()
     #Enter Player's Names
@@ -154,34 +169,24 @@ while True:
             #Label for score and player name
             #For loop in range of number of blanks
             for blank in range(num_blanks):
-                player_name_label = Label(frame, text=players[player_i])
+                player_name_label = Label(frame, text=players[player_i], wrap = 800)
                 player_name_label.grid()
                 score_label = Label(frame, text="Score: " + str(scores[player_i]))
                 score_label.grid()
-                black_card_label = Label(frame, text=(black_cards[current_black_card]).replace("&", "_______"))
+                black_card_label = Label(frame, text=(black_cards[current_black_card]).replace("&", "_______"), wrap = 800)
                 black_card_label.grid()
                 blank_num_label = Label (frame, text="Please select a white card for blank number " + str(blank + 1))
                 blank_num_label.grid()
-                default = StringVar()
-                default.set("Choose...")
-                options = []
+                i = 0
                 for white_card_i in white_cards_by_player[player_i]:
-                    options.append(possible_white_cards[white_card_i])
-                listbox = OptionMenu(frame, default, *options)
-                listbox.grid()
+                    radio = Radiobutton(frame, text = possible_white_cards[white_card_i], wrap = 800, value = i, variable = selecting_card)
+                    i = i + 1
+                    radio.grid(sticky = 'w')
                 submit_btn1 = Button (frame, text="Submit", command=lambda: var.set(1))
                 submit_btn1.grid()
                 submit_btn1.wait_variable(var)
-                while default.get() == "Choose...":
-                    tk.messagebox.showerror(title="ERROR", message="Please Select A Card")
-                    submit_btn1.wait_variable(var)
-                #Update selected_white_cards
-                selected_white_cards[player_i].append(possible_white_cards.index(default.get()))
-                player_white_cards_spelled = []
-                for card in white_cards_by_player[player_i]:
-                    player_white_cards_spelled.append(possible_white_cards[card])
-                player_white_cards_spelled.index(default.get())
-                white_cards_by_player[player_i].pop(player_white_cards_spelled.index(default.get()))
+                selected_white_cards[player_i].append(white_cards_by_player[player_i][selecting_card.get()])
+                white_cards_by_player[player_i].pop(selecting_card.get())
                 clearFrame()
             #Update completed cards
             black_card_split = black_cards[current_black_card].split('&')
@@ -192,39 +197,37 @@ while True:
                 completed_card = completed_card + (black_card_split[-1])
             completed_cards.append(completed_card)
         #Update Interface for master selection
-        player_name_label = Label(frame, text=players[master_player_i])
+        player_name_label = Label(frame, text=players[master_player_i], wrap = 800)
         player_name_label.grid()
         score_label = Label(frame, text="Score: " + str(scores[master_player_i]))
         score_label.grid()
-        black_card_label = Label(frame, text=(black_cards[current_black_card]).replace("&", "_______"))
+        black_card_label = Label(frame, text=(black_cards[current_black_card]).replace("&", "_______"), wrap = 800)
         black_card_label.grid()
         blank_num_label = Label (frame, text="Please select the card that will win the round")
         blank_num_label.grid()
         #Make completed_cards_shuffled a copy of completed_cards and shuffle it
         completed_cards_shuffled = completed_cards.copy()
         r.shuffle(completed_cards_shuffled)
-        default = StringVar()
-        default.set("Choose...")
-        listbox = OptionMenu(frame, default, *completed_cards_shuffled)
-        listbox.grid()
+        i = 0
+        for card in completed_cards_shuffled:
+            radio = Radiobutton(frame, text = card, wrap = 800, value = i, variable = selecting_card)
+            i = i + 1
+            radio.grid(sticky = 'w')
         submit_btn1 = Button (frame, text="Submit", command=lambda: var.set(1))
         submit_btn1.grid()
         submit_btn1.wait_variable(var)
-        while default.get() == "Choose...":
-            tk.messagebox.showerror(title="ERROR", message="Please Select A Card")
-            submit_btn1.wait_variable(var)
         clearFrame()
         #Once Master selects a card, trace it back using original completed_cards
-        scores[selecting_players_i[completed_cards.index(default.get())]] = (scores[selecting_players_i[completed_cards.index(default.get())]]) + 1        
+        scores[selecting_players_i[completed_cards.index(completed_cards_shuffled[selecting_card.get()])]] = (scores[selecting_players_i[completed_cards.index(completed_cards_shuffled[selecting_card.get()])]]) + 1        
         #Round Winner Label
-        round_winner = Label(frame, text="The winner of the round is " + players[selecting_players_i[completed_cards.index(default.get())]])
+        round_winner = Label(frame, text="The winner of the round is " + players[selecting_players_i[completed_cards.index(completed_cards_shuffled[selecting_card.get()])]], wrap = 800)
         round_winner.grid()
         submit_btn1 = Button (frame, text="Next", command=lambda: var.set(1))
         submit_btn1.grid()
         submit_btn1.wait_variable(var)
         clearFrame()
         #Update master_player_i
-        master_player_i = selecting_players_i[completed_cards.index(default.get())]
+        master_player_i = selecting_players_i[completed_cards.index(completed_cards_shuffled[selecting_card.get()])]
         #Update selecting_players_i
         selecting_players_i = []
         for player in range(len(players)):
@@ -265,7 +268,7 @@ while True:
 
     #Update interface to show leader board
     for player in sorted(zip(scores, players), reverse=True):
-        leader_board = Label(frame, text = str(player[1]) + " - " + str(player[0]) + " pts.")
+        leader_board = Label(frame, text = str(player[1]) + " - " + str(player[0]) + " pts.", wrap = 800)
         leader_board.grid()
     #Button to restart game
     submit_btn1 = Button (frame, text="Reset", command=lambda: var.set(1))
