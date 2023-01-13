@@ -63,9 +63,6 @@ while True:
     possible_white_cards = [line.replace('\n', '') for line in possible_white_cards_temp]
     while ("" in possible_white_cards):
         possible_white_cards.remove("")
-    if ("Choose..." in possible_white_cards):
-        tk.messagebox.showerror(title="ERROR", message='"Choose..." cannot be a white card. Please remove all occurrences of this white card in white_cards.txt')
-        top.destroy()
     black_cards_file = open("black_cards.txt", "r")
     black_cards_temp = black_cards_file.readlines()
     black_cards = [line.replace('\n', '') for line in black_cards_temp]
@@ -168,6 +165,14 @@ while True:
         for player_i in selecting_players_i:
             #Label for score and player name
             #For loop in range of number of blanks
+            black_card_label = Label(frame, text=(black_cards[current_black_card]).replace("&", "_______"), wrap = 800)
+            black_card_label.grid()
+            next_player_label = Label (frame, text = "Give the computer to " + players[player_i], wrap = 800)
+            next_player_label.grid()
+            submit_btn1 = Button (frame, text="Next", command=lambda: var.set(1))
+            submit_btn1.grid()
+            submit_btn1.wait_variable(var)
+            clearFrame()
             for blank in range(num_blanks):
                 player_name_label = Label(frame, text=players[player_i], wrap = 800)
                 player_name_label.grid()
@@ -196,6 +201,14 @@ while True:
             if (black_cards[current_black_card])[-1] != '&':
                 completed_card = completed_card + (black_card_split[-1])
             completed_cards.append(completed_card)
+        black_card_label = Label(frame, text=(black_cards[current_black_card]).replace("&", "_______"), wrap = 800)
+        black_card_label.grid()
+        next_player_label = Label (frame, text = "Give the computer to " + players[master_player_i], wrap = 800)
+        next_player_label.grid()
+        submit_btn1 = Button (frame, text="Next", command=lambda: var.set(1))
+        submit_btn1.grid()
+        submit_btn1.wait_variable(var)
+        clearFrame()
         #Update Interface for master selection
         player_name_label = Label(frame, text=players[master_player_i], wrap = 800)
         player_name_label.grid()
