@@ -6,8 +6,10 @@ import sys
 
 
 top = tk.Tk()
-top.geometry('1280x720')
+icon = tk.PhotoImage(file = 'Main Icon.png')
+top.wm_iconphoto(False, icon)
 top.title("Fill in the Blank Cards")
+top.attributes('-fullscreen',True)
 canvas=Canvas(top, highlightthickness=0)
 canvas.grid_columnconfigure(0, weight=1)
 myscrollbar=Scrollbar(top,orient="vertical")
@@ -18,13 +20,14 @@ canvas.pack(side=TOP,expand=True,fill=BOTH)
 canvas.grid_columnconfigure(0, weight=1)
 frame = Frame(canvas)
 frame.grid_columnconfigure(0, weight=1)
+frame.pack(side="top", expand=True, fill="both")
 frame.bind(
     "<Configure>",
     lambda e: canvas.configure(
         scrollregion=canvas.bbox("all")
     )
 )
-canvas.create_window((0, 0), window=frame, anchor="nw")
+canvas.create_window((top.winfo_screenwidth()/2, top.winfo_screenheight()/2), window=frame, anchor="center")
 players = []
 num_players = 0
 scores = []
@@ -46,9 +49,13 @@ current_black_card = 0
 def clearFrame():
     # destroy all widgets from frame
     for widget in frame.winfo_children():
-       widget.destroy()
+        widget.destroy()
 
 def on_closing():
+    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        top.destroy()
+
+def exit(e):
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
         top.destroy()
 
@@ -57,6 +64,7 @@ def handler(e):
 
 top.protocol("WM_DELETE_WINDOW", on_closing)
 top.bind('<Return>', handler)
+top.bind('<Escape>', exit)
 while True:
     white_cards_file = open("white_cards.txt", "r")
     possible_white_cards_temp = white_cards_file.readlines()
