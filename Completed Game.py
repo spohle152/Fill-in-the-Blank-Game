@@ -3,6 +3,9 @@ import random as r
 from tkinter import *
 from tkinter import messagebox
 import sys
+import os
+from playsound import playsound
+from gtts import gTTS
 
 
 top = tk.Tk()
@@ -45,6 +48,10 @@ num_blanks = 0
 current_black_card = 0
 
 #Initially set up the game to set users names and select a player at random to be first master (setup function) Use for loop to iterate through selecting_players. (playing_round function) Once all of them have chosen, have the master_player select a card from completed cards shuffle (selecting_winner function). Give out white cards using random to give to different users, making sure no duplicate cards are in use at the same time (probably find() function) Trace back the selected card to choose new master player and update variables, including score, accordingly. (score_calculation function) Repeat until a player has a score of 5, then list winners. (winning function)
+def sel():
+    for button in radio:
+        button.configure(foreground='black', background='#4790de')
+    radio[selecting_card.get()].configure(foreground='white', background='black')
 
 def clearFrame():
     # destroy all widgets from frame
@@ -61,6 +68,14 @@ def exit(e):
 
 def handler(e):
    var.set(1)
+
+def play_files():
+    for card in completed_cards_shuffled:
+        myobj = gTTS(text = card, lang = "en", slow = False)
+        myobj.save("convert.wav")
+        os.system("convert.wav")
+        playsound("convert.wav")
+        os.remove("convert.wav")
 
 top.protocol("WM_DELETE_WINDOW", on_closing)
 top.bind('<Return>', handler)
@@ -191,10 +206,11 @@ while True:
                 blank_num_label = Label (frame, text="Please select a white card for blank number " + str(blank + 1))
                 blank_num_label.grid()
                 i = 0
+                radio=[]
                 for white_card_i in white_cards_by_player[player_i]:
-                    radio = Radiobutton(frame, text = possible_white_cards[white_card_i], wrap = 800, value = i, variable = selecting_card)
+                    radio.append(Radiobutton(frame, text = possible_white_cards[white_card_i], indicator = 0, highlightcolor="black", highlightbackground="#ffffff", highlightthickness=5, background="#4790de", activebackground="#9fc9f5", borderwidth = 0, relief="flat", wrap = 800, value = i, variable = selecting_card, command=sel))
+                    radio[i].grid(sticky = 'w', pady=5)
                     i = i + 1
-                    radio.grid(sticky = 'w')
                 submit_btn1 = Button (frame, text="Submit", command=lambda: var.set(1))
                 submit_btn1.grid()
                 submit_btn1.wait_variable(var)
@@ -230,10 +246,13 @@ while True:
         completed_cards_shuffled = completed_cards.copy()
         r.shuffle(completed_cards_shuffled)
         i = 0
+        radio=[]
         for card in completed_cards_shuffled:
-            radio = Radiobutton(frame, text = card, wrap = 800, value = i, variable = selecting_card)
+            radio.append(Radiobutton(frame, text = card, indicator = 0, highlightcolor="black", highlightbackground="#ffffff", highlightthickness=5, background="#4790de", activebackground="#9fc9f5", borderwidth = 0, relief="flat", wrap = 800, value = i, variable = selecting_card, command=sel))
+            radio[i].grid(sticky = 'w', pady=5)
             i = i + 1
-            radio.grid(sticky = 'w')
+        listen_btn1 = Button (frame, text="Listen", command=play_files)
+        listen_btn1.grid()
         submit_btn1 = Button (frame, text="Submit", command=lambda: var.set(1))
         submit_btn1.grid()
         submit_btn1.wait_variable(var)
